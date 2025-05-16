@@ -13,9 +13,9 @@ graph TD;
 
 ```mermaid
 erDiagram
-    auth.users ||--o{ profiles : "has one"
-    profiles ||--|{ user_organization_roles : "has many"
-    organizations ||--|{ user_organization_roles : "has many"
+    users ||--o{ profiles : "has one (FK on profiles.id)"
+    profiles ||--|{ user_organization_roles : "links to"
+    organizations ||--|{ user_organization_roles : "links to"
     roles ||--|{ user_organization_roles : "defines role for"
 
     organizations ||--o{ service_requests : "owns many"
@@ -24,71 +24,68 @@ erDiagram
     organizations ||--o{ technicians_app_data : "owns many"
 
     profiles ||--o{ technicians_app_data : "can be (if technician is a user)"
+    profiles ||--o{ service_requests_created_by : "created by"
+    profiles ||--o{ images_uploaded_by : "uploaded by"
 
     service_requests {
         uuid id PK
         string title
         string description
-        uuid organization_id FK
-        uuid assigned_technician_id FK "nullable, if technician is a user/profile"
+        uuid organization_id FK "to organizations.id"
+        uuid assigned_technician_id FK "to technicians_app_data.id (nullable)"
         timestamp created_at
-        uuid created_by_user_id FK "references profiles(id)"
-        -- other fields
+        uuid created_by_user_id FK "to profiles.id"
     }
 
     images {
         uuid id PK
         string url
-        uuid organization_id FK
-        uuid uploaded_by_user_id FK "references profiles(id)"
-        -- other fields
+        uuid organization_id FK "to organizations.id"
+        uuid uploaded_by_user_id FK "to profiles.id"
     }
 
     locations {
         uuid id PK
         string address
-        uuid organization_id FK
-        -- other fields
+        uuid organization_id FK "to organizations.id"
     }
 
     technicians_app_data {
-        uuid id PK "could be same as profile_id if all technicians are users"
-        uuid profile_id FK "references profiles(id), if technician is a user"
-        string name "if technician is not a direct user or for display"
-        uuid organization_id FK "technician belongs to this org"
-        -- other technician-specific fields not in profiles
+        uuid id PK
+        uuid profile_id FK "to profiles.id (nullable)"
+        string name
+        uuid organization_id FK "to organizations.id"
     }
 
     profiles {
-        uuid id PK "references auth.users(id)"
+        uuid id PK "FK to users.id"
         string full_name
         string avatar_url
-        -- other app-specific user data
     }
 
     organizations {
         uuid id PK
         string name
-        string slug "unique, for URLs perhaps"
-        -- other tenant-specific data (subscription, settings)
+        string slug UK "unique"
     }
 
     roles {
-        text name PK "e.g., 'admin', 'member', 'technician_lead', 'viewer'"
+        text name PK
         string description
     }
 
     user_organization_roles {
-        uuid user_id PK FK "references profiles(id)"
-        uuid organization_id PK FK "references organizations(id)"
-        text role_name PK FK "references roles(name)"
-        -- other metadata like 'joined_at'
+        uuid user_id PK "FK to profiles.id"
+        uuid organization_id PK "FK to organizations.id"
+        text role_name PK "FK to roles.name"
     }
 
-    %% Supabase's built-in auth table
-    %% auth.users {
-    %%     uuid id PK
-    %%     string email
-    %%     -- other auth fields
-    %% }
+    users {
+        uuid id PK "This represents Supabase auth.users"
+        string email
+    }
+
+    %% Explicitly showing some relationships that were implied or described in text
+    service_requests }o--|| profiles as service_requests_created_by : "created_by_user_id"
+    images }o--|| profiles as images_uploaded_by : "uploaded_by_user_id"
 ```
