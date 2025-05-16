@@ -84,8 +84,4 @@ erDiagram
         uuid id PK "This represents Supabase auth.users"
         string email
     }
-
-    %% Explicitly showing some relationships that were implied or described in text
-    service_requests }o--|| profiles as service_requests_created_by : "created_by_user_id"
-    images }o--|| profiles as images_uploaded_by : "uploaded_by_user_id"
 ```
