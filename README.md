@@ -4,6 +4,14 @@ New version of Marigold property application
 ## Auth example tables
 
 ```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
+```mermaid
 erDiagram
     auth.users ||--o{ profiles : "has one"
     profiles ||--|{ user_organization_roles : "has many"
